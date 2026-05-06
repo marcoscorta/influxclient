@@ -1,0 +1,1044 @@
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+  
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0a0e13;
+    --surface: #111820;
+    --surface2: #1a2433;
+    --border: #1e3048;
+    --border2: #2a4060;
+    --cyan: #00d4ff;
+    --cyan2: #0099cc;
+    --green: #00ff9d;
+    --green2: #00cc7a;
+    --amber: #ffb800;
+    --red: #ff4d6a;
+    --text: #c8d8e8;
+    --text2: #6a8aaa;
+    --text3: #3a5a7a;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  .app { display: grid; grid-template-rows: auto 1fr; min-height: 600px; }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 15px; font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  .status-bar { display: flex; align-items: center; gap: 16px; font-family: var(--mono); font-size: 11px; color: var(--text2); }
+  .status-indicator { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); }
+  .dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+  .main { display: grid; grid-template-columns: 260px 1fr; height: calc(100vh - 52px); min-height: 548px; }
+
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-section:last-child { border-bottom: none; flex: 1; overflow-y: auto; }
+
+  .section-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .field { margin-bottom: 10px; }
+  .field label { font-family: var(--mono); font-size: 11px; color: var(--text2); display: block; margin-bottom: 4px; }
+
+  .field input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text); font-family: var(--mono); font-size: 12px; padding: 7px 10px;
+    outline: none; transition: border-color 0.15s;
+  }
+  .field input:focus { border-color: var(--cyan2); }
+  .field input::placeholder { color: var(--text3); }
+
+  .btn {
+    width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--border2);
+    font-family: var(--mono); font-size: 12px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .btn-primary { background: var(--cyan); color: #000; border-color: var(--cyan); }
+  .btn-primary:hover { background: var(--cyan2); border-color: var(--cyan2); }
+  .btn-primary:disabled { background: var(--border2); color: var(--text3); border-color: var(--border2); cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--cyan); }
+  .btn-ghost:hover { background: rgba(0,212,255,0.08); }
+  .btn-danger { background: transparent; color: var(--red); border-color: var(--red); }
+  .btn-danger:hover { background: rgba(255,77,106,0.1); }
+
+  .bucket-list { display: flex; flex-direction: column; gap: 4px; }
+  .bucket-item {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 4px;
+    cursor: pointer; font-family: var(--mono); font-size: 12px; color: var(--text2);
+    border: 1px solid transparent; transition: all 0.15s;
+  }
+  .bucket-item:hover { background: var(--surface2); border-color: var(--border); color: var(--text); }
+  .bucket-item.active { background: rgba(0,212,255,0.08); border-color: var(--cyan2); color: var(--cyan); }
+  .bucket-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+  .content { display: flex; flex-direction: column; overflow: hidden; }
+
+  .tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    background: var(--surface); padding: 0 20px; gap: 0;
+  }
+  .tab {
+    padding: 14px 18px; font-family: var(--mono); font-size: 12px; font-weight: 500;
+    color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.15s; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+  .panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .panel.active { display: flex; }
+
+  .query-editor { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+  .editor-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .editor-title { font-family: var(--mono); font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
+
+  .editor-actions { display: flex; gap: 8px; align-items: center; }
+
+  .textarea-wrap { flex: 1; position: relative; min-height: 120px; max-height: 200px; }
+  textarea {
+    width: 100%; height: 100%; background: var(--bg); border: none;
+    color: var(--green); font-family: var(--mono); font-size: 13px; line-height: 1.7;
+    padding: 16px 20px; resize: none; outline: none; display: block;
+  }
+  textarea::selection { background: rgba(0,212,255,0.2); }
+
+  .results-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px; border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .results-meta { font-family: var(--mono); font-size: 11px; color: var(--text2); }
+  .results-meta span { color: var(--cyan); }
+
+  .results-content { flex: 1; overflow: auto; }
+
+  .table-wrap { padding: 16px 20px; }
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  th {
+    text-align: left; padding: 8px 12px; background: var(--surface2);
+    border: 1px solid var(--border); color: var(--cyan); font-weight: 700;
+    font-size: 11px; letter-spacing: 0.5px; text-transform: uppercase;
+    position: sticky; top: 0;
+  }
+  td {
+    padding: 7px 12px; border: 1px solid var(--border);
+    color: var(--text); font-size: 12px;
+  }
+  tr:hover td { background: var(--surface2); }
+  tr:nth-child(even) td { background: rgba(26,36,51,0.4); }
+
+  .chart-wrap { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+  .chart-container { position: relative; flex: 1; min-height: 220px; max-height: 300px; }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex: 1; gap: 12px; color: var(--text3);
+    font-family: var(--mono); font-size: 13px;
+  }
+  .empty-icon {
+    width: 48px; height: 48px; border: 1px solid var(--border2); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+
+  .log-line { font-family: var(--mono); font-size: 12px; padding: 4px 20px; }
+  .log-line.info { color: var(--text2); }
+  .log-line.success { color: var(--green); }
+  .log-line.error { color: var(--red); }
+  .log-line.warn { color: var(--amber); }
+  .log-prefix { color: var(--text3); margin-right: 8px; }
+
+  .spinner {
+    display: inline-block; width: 12px; height: 12px;
+    border: 2px solid var(--border2); border-top-color: var(--cyan);
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .badge {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 3px; letter-spacing: 0.5px;
+  }
+  .badge-cyan { background: rgba(0,212,255,0.12); color: var(--cyan); border: 1px solid rgba(0,212,255,0.25); }
+  .badge-green { background: rgba(0,255,157,0.10); color: var(--green2); border: 1px solid rgba(0,255,157,0.2); }
+
+  .view-toggle { display: flex; gap: 4px; }
+  .toggle-btn {
+    padding: 5px 10px; border-radius: 3px; border: 1px solid var(--border);
+    background: transparent; color: var(--text2); font-family: var(--mono); font-size: 11px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .toggle-btn.active { background: rgba(0,212,255,0.1); border-color: var(--cyan2); color: var(--cyan); }
+  .toggle-btn:hover:not(.active) { border-color: var(--border2); color: var(--text); }
+
+  .resize-handle {
+    height: 4px; background: var(--border); cursor: row-resize;
+    transition: background 0.15s;
+  }
+  .resize-handle:hover { background: var(--cyan2); }
+
+  .csv-btn {
+    padding: 5px 12px; border-radius: 3px; border: 1px solid var(--border2);
+    background: transparent; color: var(--green2); font-family: var(--mono); font-size: 11px;
+    cursor: pointer; font-weight: 700; transition: all 0.15s;
+  }
+  .csv-btn:hover { background: rgba(0,255,157,0.08); }
+
+  .error-banner {
+    margin: 16px 20px; padding: 12px 16px; border-radius: 4px;
+    border: 1px solid rgba(255,77,106,0.4); background: rgba(255,77,106,0.08);
+    color: var(--red); font-family: var(--mono); font-size: 12px;
+    display: none;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cyan2); }
+
+  /* Explorer step styles */
+  .explorer-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .explorer-step.step-active { border-color: var(--border2); }
+  .explorer-step.step-done { border-color: rgba(0,212,255,0.3); }
+  .explorer-step.step-disabled { opacity: 0.5; pointer-events: none; }
+  .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .step-number {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    background: rgba(0,212,255,0.1); color: var(--cyan);
+    border: 1px solid rgba(0,212,255,0.25);
+  }
+  .step-title { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--text); }
+  .step-sub { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; min-height: 16px; }
+  .chip {
+    font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 3px;
+    border: 1px solid var(--border2); background: var(--bg); color: var(--text2);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--cyan2); color: var(--text); background: rgba(0,212,255,0.05); }
+  .chip.selected { background: rgba(0,212,255,0.12); border-color: var(--cyan); color: var(--cyan); font-weight: 700; }
+  .chip.chip-green { border-color: rgba(0,255,157,0.3); color: var(--green2); }
+  .chip.chip-green:hover { border-color: var(--green2); background: rgba(0,255,157,0.06); }
+  .chip.chip-green.selected { background: rgba(0,255,157,0.12); border-color: var(--green2); color: var(--green); font-weight: 700; }
+  .chip.chip-amber { border-color: rgba(255,184,0,0.3); color: var(--amber); }
+  .chip.chip-amber.selected { background: rgba(255,184,0,0.1); border-color: var(--amber); font-weight: 700; }
+  .tag-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .tag-key { font-family: var(--mono); font-size: 11px; color: var(--cyan); min-width: 80px; }
+  .loading-chips { font-family: var(--mono); font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+
+</style>
+
+</head>
+
+<div class="app">
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-dot" id="connDot"></div>
+      INFLUX CLIENT
+    </div>
+    
+    <div class="status-bar">
+      <div class="status-indicator">
+        <div class="dot" id="statusDot"></div>
+        <span id="statusText">not connected</span>
+      </div>
+      <span style="color:var(--border2)">|</span>
+      <span id="versionBadge" style="color:var(--text3)">InfluxDB</span>
+      <span style="color:var(--border2)">|</span>
+      <span id="versionBadge" style="color:var(--text3)">Marco Scorta - 2026</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-label">Connection</div>
+        <div class="field">
+          <label>URL</label>
+          <input id="url" type="text" placeholder="http://localhost:8086" />
+        </div>
+        <div class="field">
+          <label>Token</label>
+          <input id="token" type="password" placeholder="Token" />
+        </div>
+        <div class="field">
+          <label>Org</label>
+          <input id="org" type="text" placeholder="myorg" />
+        </div>
+        <button class="btn btn-primary" id="connectBtn" onclick="connect()">Connect</button>
+      </div>
+
+      <div class="sidebar-section" style="flex:1; overflow-y:auto;">
+        <div class="section-label">Buckets</div>
+        <div class="bucket-list" id="bucketList">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:4px 0;">Connect to load buckets</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('query')">Query</div>
+        <div class="tab" onclick="switchTab('explorer')">Explorer</div>
+        <div class="tab" onclick="switchTab('log')">Log</div>
+      </div>
+
+      <div class="panel active" id="panel-query">
+        <div class="query-editor">
+          <div class="editor-header">
+            <span class="editor-title">Flux Query</span>
+            <div class="editor-actions">
+              <div class="view-toggle">
+                <button class="toggle-btn active" id="viewTable" onclick="setView('table')">Table</button>
+                <button class="toggle-btn" id="viewChart" onclick="setView('chart')">Chart</button>
+              </div>
+              <button class="csv-btn" id="csvBtn" onclick="exportCSV()" disabled>Export CSV</button>
+              <button class="btn btn-primary" id="runBtn" onclick="runQuery()" disabled>▶ Run</button>
+            </div>
+          </div>
+          <div class="textarea-wrap">
+            <textarea id="queryEditor" placeholder="// Write your Flux query here
+// Example:
+// from(bucket: &quot;my-bucket&quot;)
+//   |> range(start: -1h)
+//   |> filter(fn: (r) => r._measurement == &quot;cpu&quot;)
+//   |> limit(n: 100)"></textarea>
+          </div>
+
+          <div class="resize-handle" id="resizeHandle"></div>
+
+          <div class="results-area" id="resultsArea">
+            <div class="error-banner" id="errorBanner"></div>
+            <div class="empty-state" id="emptyState">
+              <div class="empty-icon">⌬</div>
+              <span>No results yet — run a query</span>
+            </div>
+            <div style="display:none;flex:1;flex-direction:column;overflow:hidden;" id="resultsView">
+              <div class="results-header">
+                <span class="results-meta">
+                  <span id="rowCount">0</span> rows &nbsp;·&nbsp; <span id="colCount">0</span> columns &nbsp;·&nbsp; <span id="queryTime">0ms</span>
+                </span>
+                <div id="resultsBadge"></div>
+              </div>
+              <div class="results-content">
+                <div id="tableView" class="table-wrap" style="display:block;"></div>
+                <div id="chartView" style="display:none; padding:16px 20px; height:280px; position:relative;">
+                  <canvas id="resultChart" role="img" aria-label="Query results chart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-explorer">
+        <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+
+          <!-- Explorer toolbar -->
+          <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="section-label" style="margin-bottom:0;">Filter Builder</span>
+            <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+              <button class="btn btn-ghost" style="padding:5px 12px;font-size:11px;" onclick="resetExplorer()">⟳ Reset</button>
+              <button class="btn btn-primary" id="applyFilterBtn" style="padding:5px 14px;font-size:11px;" onclick="applyFilterQuery()" disabled>▶ Apply Filter</button>
+            </div>
+          </div>
+
+          <!-- Steps area -->
+          <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:20px;" id="explorerSteps">
+
+            <!-- Step 1: Measurement -->
+            <div class="explorer-step" id="step-measurement">
+              <div class="step-header">
+                <div class="step-number">1</div>
+                <div>
+                  <div class="step-title">Measurement</div>
+                  <div class="step-sub" id="step-measurement-sub">Select a bucket first</div>
+                </div>
+                <div id="step-measurement-badge" style="margin-left:auto;"></div>
+              </div>
+              <div class="chip-group" id="measurement-chips"></div>
+            </div>
+
+            <!-- Step 2: Field -->
+            <div class="explorer-step step-disabled" id="step-field">
+              <div class="step-header">
+                <div class="step-number" style="opacity:0.4;">2</div>
+                <div>
+                  <div class="step-title" style="opacity:0.4;">Field</div>
+                  <div class="step-sub" id="step-field-sub">Select a measurement first</div>
+                </div>
+                <div id="step-field-badge" style="margin-left:auto;"></div>
+              </div>
+              <div class="chip-group" id="field-chips"></div>
+            </div>
+
+            <!-- Step 3: Time range -->
+            <div class="explorer-step step-disabled" id="step-time">
+              <div class="step-header">
+                <div class="step-number" style="opacity:0.4;">3</div>
+                <div>
+                  <div class="step-title" style="opacity:0.4;">Time Range</div>
+                  <div class="step-sub">Choose how far back to look</div>
+                </div>
+              </div>
+              <div class="chip-group" id="time-chips"></div>
+            </div>
+
+            <!-- Step 4: Tag Filters -->
+            <div class="explorer-step step-disabled" id="step-tags">
+              <div class="step-header">
+                <div class="step-number" style="opacity:0.4;">4</div>
+                <div>
+                  <div class="step-title" style="opacity:0.4;">Tag Filters</div>
+                  <div class="step-sub" id="step-tags-sub">Optional — filter by tag values</div>
+                </div>
+              </div>
+              <div id="tag-filters-area"></div>
+            </div>
+
+            <!-- Query Preview -->
+            <div id="query-preview-area" style="display:none;">
+              <div class="step-header" style="margin-bottom:8px;">
+                <div class="step-number" style="background:rgba(0,255,157,0.12);color:var(--green);border-color:rgba(0,255,157,0.3);">✓</div>
+                <div><div class="step-title" style="color:var(--green);">Generated Query</div></div>
+              </div>
+              <pre id="query-preview-code" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px 16px;font-family:var(--mono);font-size:12px;color:var(--green);line-height:1.7;overflow-x:auto;white-space:pre-wrap;"></pre>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-log">
+        <div style="padding:12px 0; flex:1; overflow-y:auto;" id="logPanel">
+          <div class="log-line info"><span class="log-prefix">[INIT]</span>Influx Client ready. Configure connection and press Connect.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let connected = false;
+let currentBucket = null;
+let currentView = 'table';
+let resultData = [];
+let resultHeaders = [];
+let chartInstance = null;
+const logs = [];
+
+function log(msg, type='info') {
+  const ts = new Date().toLocaleTimeString('it-IT', {hour12:false});
+  const panel = document.getElementById('logPanel');
+  const div = document.createElement('div');
+  div.className = `log-line ${type}`;
+  div.innerHTML = `<span class="log-prefix">[${ts}]</span>${msg}`;
+  panel.appendChild(div);
+  panel.scrollTop = panel.scrollHeight;
+}
+
+function setStatus(ok, text) {
+  document.getElementById('statusDot').className = `dot ${ok ? 'connected' : ok===null ? 'error' : ''}`;
+  document.getElementById('connDot').style.background = ok ? 'var(--green)' : ok===null ? 'var(--red)' : 'var(--text3)';
+  document.getElementById('connDot').style.boxShadow = ok ? '0 0 8px var(--green)' : ok===null ? '0 0 8px var(--red)' : 'none';
+  document.getElementById('statusText').textContent = text;
+}
+
+async function proxyRequest(url, options={}) {
+  const fullUrl = document.getElementById('url').value.replace(/\/+$/, '') + url;
+  const token = document.getElementById('token').value;
+  const org = document.getElementById('org').value;
+  const headers = { 'Authorization': `Token ${token}`, 'Content-Type': 'application/json', ...(options.headers||{}) };
+  const resp = await fetch(fullUrl, { ...options, headers });
+  return resp;
+}
+
+async function connect() {
+  const url = document.getElementById('url').value.trim();
+  const token = document.getElementById('token').value.trim();
+  const org = document.getElementById('org').value.trim();
+  if (!url || !token || !org) { log('Missing URL, token or org', 'error'); return; }
+
+  const btn = document.getElementById('connectBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connecting…';
+  log(`Connecting to ${url}…`, 'info');
+
+  try {
+    const resp = await proxyRequest('/api/v2/buckets?org=' + encodeURIComponent(org));
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    const data = await resp.json();
+    const buckets = (data.buckets || []).filter(b => !b.name.startsWith('_'));
+    connected = true;
+    setStatus(true, 'connected');
+    log(`Connected — found ${buckets.length} user bucket(s)`, 'success');
+    renderBuckets(buckets);
+    document.getElementById('runBtn').disabled = false;
+  } catch(e) {
+    setStatus(null, 'error');
+    log(`Connection failed: ${e.message}`, 'error');
+    document.getElementById('bucketList').innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--red);">Connection failed</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Reconnect';
+}
+
+function renderBuckets(buckets) {
+  const list = document.getElementById('bucketList');
+  if (!buckets.length) { list.innerHTML = `<div style="font-family:var(--mono);font-size:11px;color:var(--text3);">No user buckets found</div>`; return; }
+  list.innerHTML = buckets.map(b => `
+    <div class="bucket-item" id="bucket-${b.id}" onclick="selectBucket('${b.name}','${b.id}')">
+      <svg class="bucket-icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="7" cy="3" rx="5" ry="2" stroke="currentColor" stroke-width="1"/>
+        <path d="M2 3v8c0 1.1 2.24 2 5 2s5-.9 5-2V3" stroke="currentColor" stroke-width="1"/>
+      </svg>
+      ${b.name}
+    </div>`).join('');
+}
+
+function selectBucket(name, id) {
+  currentBucket = name;
+  document.querySelectorAll('.bucket-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(`bucket-${id}`);
+  if (el) el.classList.add('active');
+  const q = `from(bucket: "${name}")\n  |> range(start: -1h)\n  |> limit(n: 100)`;
+  document.getElementById('queryEditor').value = q;
+  log(`Selected bucket: ${name}`, 'info');
+  exploreFields(name);
+}
+
+// ── Explorer state ────────────────────────────────────────────────
+const exState = { measurement: null, fields: [], timeRange: '-1h', tags: {} };
+
+function resetExplorer() {
+  exState.measurement = null;
+  exState.fields = [];
+  exState.timeRange = '-1h';
+  exState.tags = {};
+  document.getElementById('measurement-chips').innerHTML = '';
+  document.getElementById('field-chips').innerHTML = '';
+  document.getElementById('time-chips').innerHTML = '';
+  document.getElementById('tag-filters-area').innerHTML = '';
+  document.getElementById('query-preview-area').style.display = 'none';
+  document.getElementById('applyFilterBtn').disabled = true;
+  setStepActive('measurement');
+  setStepDisabled('field');
+  setStepDisabled('time');
+  setStepDisabled('tags');
+  if (currentBucket) loadMeasurements(currentBucket);
+}
+
+function setStepActive(id) {
+  const el = document.getElementById(`step-${id}`);
+  el.classList.remove('step-disabled','step-done');
+  el.classList.add('step-active');
+  el.querySelectorAll('.step-title,.step-number').forEach(e => e.style.opacity='1');
+}
+function setStepDisabled(id) {
+  const el = document.getElementById(`step-${id}`);
+  el.classList.remove('step-active','step-done');
+  el.classList.add('step-disabled');
+  el.querySelectorAll('.step-title,.step-number').forEach(e => e.style.opacity='0.4');
+}
+function setStepDone(id) {
+  const el = document.getElementById(`step-${id}`);
+  el.classList.remove('step-disabled','step-active');
+  el.classList.add('step-done');
+  el.querySelectorAll('.step-title,.step-number').forEach(e => e.style.opacity='1');
+}
+
+function loadingChips(containerId, msg='Loading…') {
+  document.getElementById(containerId).innerHTML =
+    `<div class="loading-chips"><span class="spinner"></span>${msg}</div>`;
+}
+
+async function exploreFields(bucket) {
+  switchTab('explorer');
+  document.getElementById('step-measurement-sub').textContent = `bucket: ${bucket}`;
+  // Reset filter state for new bucket, but keep steps open
+  exState.measurement = null;
+  exState.fields = [];
+  exState.tags = {};
+  setStepActive('measurement');
+  // Field/time/tags remain visible but greyed until a measurement is picked
+  ['field','time','tags'].forEach(id => {
+    const el = document.getElementById(`step-${id}`);
+    el.classList.remove('step-active','step-done');
+    el.classList.add('step-disabled');
+  });
+  document.getElementById('field-chips').innerHTML = '';
+  document.getElementById('time-chips').innerHTML = '';
+  document.getElementById('tag-filters-area').innerHTML = '';
+  document.getElementById('query-preview-area').style.display = 'none';
+  document.getElementById('applyFilterBtn').disabled = true;
+  loadMeasurements(bucket);
+}
+
+async function loadMeasurements(bucket) {
+  loadingChips('measurement-chips', 'Loading measurements…');
+  try {
+    const org = document.getElementById('org').value;
+    const query = `import "influxdata/influxdb/schema"\nschema.measurements(bucket: "${bucket}")`;
+    const resp = await proxyRequest(`/api/v2/query?org=${encodeURIComponent(org)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/vnd.flux', 'Accept': 'application/csv' },
+      body: query
+    });
+    const text = await resp.text();
+    const measurements = parseCSV(text).map(r => r['_value']).filter(Boolean);
+    const container = document.getElementById('measurement-chips');
+    if (!measurements.length) {
+      container.innerHTML = `<div class="loading-chips" style="color:var(--text3);">No measurements found</div>`;
+      return;
+    }
+    container.innerHTML = measurements.map(m =>
+      `<div class="chip" onclick="selectMeasurement('${bucket}','${m}',this)">${m}</div>`
+    ).join('');
+    document.getElementById('step-measurement-badge').innerHTML =
+      `<span class="badge badge-cyan">${measurements.length}</span>`;
+  } catch(e) {
+    document.getElementById('measurement-chips').innerHTML =
+      `<div class="loading-chips" style="color:var(--red);">Error: ${e.message}</div>`;
+    log(`Explorer error: ${e.message}`, 'warn');
+  }
+}
+
+async function selectMeasurement(bucket, measurement, chipEl) {
+  document.querySelectorAll('#measurement-chips .chip').forEach(c => c.classList.remove('selected'));
+  chipEl.classList.add('selected');
+  exState.measurement = measurement;
+  exState.fields = [];
+  exState.tags = {};
+  setStepDone('measurement');
+
+  // Unlock ALL steps immediately — no cascading blocks
+  setStepActive('field');
+  setStepActive('time');
+  setStepActive('tags');
+  document.getElementById('tag-filters-area').innerHTML = '';
+  document.getElementById('step-field-sub').textContent = `measurement: ${measurement}`;
+
+  // Time chips are synchronous — render immediately
+  loadTimeChips();
+
+  // Fields and tags load in parallel — neither waits for the other
+  loadFieldChips(bucket, measurement);
+  loadTagFilters(bucket, measurement);
+
+  // Preview is already usable with just measurement + default time
+  refreshQueryPreview();
+}
+
+async function loadFieldChips(bucket, measurement) {
+  loadingChips('field-chips', 'Loading fields…');
+  try {
+    const org = document.getElementById('org').value;
+    const query = `import "influxdata/influxdb/schema"\nschema.fieldKeys(bucket: "${bucket}", predicate: (r) => r._measurement == "${measurement}")`;
+    const resp = await proxyRequest(`/api/v2/query?org=${encodeURIComponent(org)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/vnd.flux', 'Accept': 'application/csv' },
+      body: query
+    });
+    const text = await resp.text();
+    const fields = parseCSV(text).map(r => r['_value']).filter(Boolean);
+    const container = document.getElementById('field-chips');
+    if (!fields.length) {
+      container.innerHTML = `<div class="loading-chips" style="color:var(--text3);">No fields found</div>`;
+    } else {
+      container.innerHTML = fields.map(f =>
+        `<div class="chip chip-green" onclick="toggleField('${f}',this)">${f}</div>`
+      ).join('');
+      document.getElementById('step-field-badge').innerHTML =
+        `<span class="badge badge-green">${fields.length} fields</span>`;
+    }
+  } catch(e) {
+    document.getElementById('field-chips').innerHTML =
+      `<div class="loading-chips" style="color:var(--red);">Error: ${e.message}</div>`;
+    log(`Field load error: ${e.message}`, 'warn');
+  }
+}
+
+function toggleField(field, chipEl) {
+  chipEl.classList.toggle('selected');
+  if (chipEl.classList.contains('selected')) {
+    if (!exState.fields.includes(field)) exState.fields.push(field);
+  } else {
+    exState.fields = exState.fields.filter(f => f !== field);
+  }
+  refreshQueryPreview();
+}
+
+function loadTimeChips() {
+  const ranges = ['-15m','-1h','-6h','-24h','-7d','-30d'];
+  const labels = ['15 min','1 hour','6 hours','24 hours','7 days','30 days'];
+  const container = document.getElementById('time-chips');
+  container.innerHTML = ranges.map((r,i) =>
+    `<div class="chip chip-amber ${r===exState.timeRange?'selected':''}" onclick="selectTime('${r}',this)">${labels[i]}</div>`
+  ).join('');
+  document.getElementById('step-time').querySelector('.step-title').style.opacity='1';
+  document.getElementById('step-time').querySelector('.step-number').style.opacity='1';
+}
+
+function selectTime(range, chipEl) {
+  document.querySelectorAll('#time-chips .chip').forEach(c => c.classList.remove('selected'));
+  chipEl.classList.add('selected');
+  exState.timeRange = range;
+  refreshQueryPreview();
+}
+
+async function loadTagFilters(bucket, measurement) {
+  try {
+    const org = document.getElementById('org').value;
+    const query = `import "influxdata/influxdb/schema"\nschema.tagKeys(bucket: "${bucket}", predicate: (r) => r._measurement == "${measurement}")`;
+    const resp = await proxyRequest(`/api/v2/query?org=${encodeURIComponent(org)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/vnd.flux', 'Accept': 'application/csv' },
+      body: query
+    });
+    const text = await resp.text();
+    const tagKeys = parseCSV(text).map(r => r['_value']).filter(k => k && !k.startsWith('_'));
+    if (!tagKeys.length) return;
+
+    setStepActive('tags');
+    document.getElementById('step-tags').querySelector('.step-title').style.opacity='1';
+    document.getElementById('step-tags').querySelector('.step-number').style.opacity='1';
+    document.getElementById('step-tags-sub').textContent = `${tagKeys.length} tag key(s) found`;
+    const area = document.getElementById('tag-filters-area');
+    area.innerHTML = `<div class="loading-chips">Loading tag values…<span class="spinner"></span></div>`;
+
+    // Load values for each tag key
+    const tagData = {};
+    for (const key of tagKeys) {
+      try {
+        const vq = `import "influxdata/influxdb/schema"\nschema.tagValues(bucket: "${bucket}", tag: "${key}", predicate: (r) => r._measurement == "${measurement}")`;
+        const vr = await proxyRequest(`/api/v2/query?org=${encodeURIComponent(org)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/vnd.flux', 'Accept': 'application/csv' },
+          body: vq
+        });
+        const vt = await vr.text();
+        tagData[key] = parseCSV(vt).map(r => r['_value']).filter(Boolean);
+      } catch { tagData[key] = []; }
+    }
+
+    area.innerHTML = Object.entries(tagData).filter(([,vals]) => vals.length).map(([key, vals]) => `
+      <div class="tag-row">
+        <div class="tag-key">${key}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;">
+          ${vals.map(v => `<div class="chip" style="font-size:10px;padding:3px 8px;" onclick="toggleTag('${key}','${v}',this)">${v}</div>`).join('')}
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    log(`Tag load error: ${e.message}`, 'warn');
+  }
+}
+
+function toggleTag(key, value, chipEl) {
+  chipEl.classList.toggle('selected');
+  if (!exState.tags[key]) exState.tags[key] = [];
+  if (chipEl.classList.contains('selected')) {
+    if (!exState.tags[key].includes(value)) exState.tags[key].push(value);
+  } else {
+    exState.tags[key] = exState.tags[key].filter(v => v !== value);
+    if (!exState.tags[key].length) delete exState.tags[key];
+  }
+  refreshQueryPreview();
+}
+
+function buildFilterQuery() {
+  if (!currentBucket || !exState.measurement) return null;
+  const lines = [`from(bucket: "${currentBucket}")`,
+    `  |> range(start: ${exState.timeRange})`,
+    `  |> filter(fn: (r) => r._measurement == "${exState.measurement}")`];
+  if (exState.fields.length) {
+    const fieldList = exState.fields.map(f => `r._field == "${f}"`).join(' or ');
+    lines.push(`  |> filter(fn: (r) => ${fieldList})`);
+  }
+  for (const [key, vals] of Object.entries(exState.tags)) {
+    if (vals.length) {
+      const tagFilter = vals.map(v => `r["${key}"] == "${v}"`).join(' or ');
+      lines.push(`  |> filter(fn: (r) => ${tagFilter})`);
+    }
+  }
+  lines.push(`  |> limit(n: 500)`);
+  return lines.join('\n');
+}
+
+function refreshQueryPreview() {
+  const q = buildFilterQuery();
+  if (!q) { document.getElementById('query-preview-area').style.display = 'none'; return; }
+  const pa = document.getElementById('query-preview-area');
+  pa.style.display = 'block';
+  document.getElementById('query-preview-code').textContent = q;
+  document.getElementById('applyFilterBtn').disabled = false;
+}
+
+async function applyFilterQuery() {
+  const q = buildFilterQuery();
+  if (!q) return;
+
+  // Visual feedback on the button
+  const btn = document.getElementById('applyFilterBtn');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Running…';
+
+  // Write query to editor
+  document.getElementById('queryEditor').value = q;
+
+  // Run the query (stays async here so we can restore the button)
+  await runQuery();
+
+  // Restore button — user can tweak filters and re-apply
+  btn.disabled = false;
+  btn.textContent = '✓ Done — Apply again';
+  btn.style.background = 'rgba(0,255,157,0.15)';
+  btn.style.borderColor = 'var(--green2)';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => {
+    btn.textContent = orig;
+    btn.style.background = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    btn.disabled = false;
+  }, 2000);
+
+  // Switch to Query tab to show results
+  switchTab('query');
+}
+
+function queryMeasurement(bucket, measurement) {
+  // legacy shim — kept for any old callers
+  exState.measurement = measurement;
+  const q = buildFilterQuery() || `from(bucket: "${bucket}")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == "${measurement}")\n  |> limit(n: 200)`;
+  document.getElementById('queryEditor').value = q;
+  switchTab('query');
+  runQuery();
+}
+
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l && !l.startsWith('#'));
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = lines[i].split(',');
+    if (vals.length < 2) continue;
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = (vals[idx] || '').trim(); });
+    rows.push(row);
+  }
+  return rows;
+}
+
+async function runQuery() {
+  if (!connected) { log('Not connected', 'error'); return; }
+  const query = document.getElementById('queryEditor').value.trim();
+  if (!query) return;
+
+  const org = document.getElementById('org').value;
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  hideError();
+  log(`Running query…`, 'info');
+  const t0 = Date.now();
+
+  try {
+    const resp = await proxyRequest(`/api/v2/query?org=${encodeURIComponent(org)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/vnd.flux', 'Accept': 'application/csv' },
+      body: query
+    });
+    const text = await resp.text();
+    if (!resp.ok) { throw new Error(text || `HTTP ${resp.status}`); }
+    const rows = parseCSV(text);
+    const elapsed = Date.now() - t0;
+    if (!rows.length) {
+      showEmpty('Query returned no results');
+      log(`No results (${elapsed}ms)`, 'warn');
+    } else {
+      resultData = rows;
+      resultHeaders = Object.keys(rows[0]);
+      renderResults(rows, elapsed);
+      log(`${rows.length} rows returned in ${elapsed}ms`, 'success');
+      document.getElementById('csvBtn').disabled = false;
+    }
+  } catch(e) {
+    showError(e.message);
+    log(`Query error: ${e.message}`, 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = '▶ Run';
+}
+
+function renderResults(rows, elapsed) {
+  document.getElementById('emptyState').style.display = 'none';
+  const rv = document.getElementById('resultsView');
+  rv.style.display = 'flex';
+  document.getElementById('rowCount').textContent = rows.length.toLocaleString();
+  document.getElementById('colCount').textContent = resultHeaders.length;
+  document.getElementById('queryTime').textContent = elapsed + 'ms';
+
+  if (currentView === 'table') renderTable(rows);
+  else renderChart(rows);
+}
+
+function renderTable(rows) {
+  const headers = resultHeaders.filter(h => !h.startsWith('') && h !== '' && h !== 'result' && h !== 'table');
+  const visibleCols = headers.length > 0 ? headers : resultHeaders;
+  const tableDiv = document.getElementById('tableView');
+  tableDiv.innerHTML = `<table>
+    <thead><tr>${visibleCols.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows.slice(0,500).map(r => `<tr>${visibleCols.map(h => `<td>${r[h] ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>
+  ${rows.length > 500 ? `<div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:8px 0;">Showing first 500 of ${rows.length} rows</div>` : ''}`;
+}
+
+function renderChart(rows) {
+  const timeCol = resultHeaders.find(h => h === '_time' || h === 'time') || resultHeaders[0];
+  const valueCol = resultHeaders.find(h => h === '_value') || resultHeaders.find(h => {
+    const v = parseFloat(rows[0]?.[h]);
+    return !isNaN(v);
+  });
+  if (!valueCol) { document.getElementById('chartView').innerHTML = `<div style="font-family:var(--mono);font-size:12px;color:var(--text3);padding:20px;">No numeric column found to chart</div>`; return; }
+
+  const sample = rows.slice(0, 200);
+  const labels = sample.map(r => {
+    const t = r[timeCol];
+    try { return new Date(t).toLocaleTimeString('it-IT', {hour12:false}); } catch { return t; }
+  });
+  const values = sample.map(r => parseFloat(r[valueCol]) || 0);
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  chartInstance = new Chart(document.getElementById('resultChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: valueCol,
+        data: values,
+        borderColor: '#00d4ff',
+        backgroundColor: 'rgba(0,212,255,0.08)',
+        borderWidth: 1.5,
+        pointRadius: values.length > 50 ? 0 : 3,
+        pointBackgroundColor: '#00d4ff',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#6a8aaa', font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 8 }, grid: { color: '#1e3048' } },
+        y: { ticks: { color: '#6a8aaa', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#1e3048' } }
+      }
+    }
+  });
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('viewTable').classList.toggle('active', v==='table');
+  document.getElementById('viewChart').classList.toggle('active', v==='chart');
+  document.getElementById('tableView').style.display = v==='table' ? 'block' : 'none';
+  document.getElementById('chartView').style.display = v==='chart' ? 'block' : 'none';
+  if (v==='chart' && resultData.length) renderChart(resultData);
+}
+
+function exportCSV() {
+  if (!resultData.length) return;
+  const csv = [resultHeaders.join(','), ...resultData.map(r => resultHeaders.map(h => `"${(r[h]||'').replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `influx_export_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.csv`;
+  a.click();
+  log(`Exported ${resultData.length} rows to CSV`, 'success');
+}
+
+function showError(msg) {
+  const b = document.getElementById('errorBanner');
+  b.textContent = '⚠ ' + msg;
+  b.style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultsView').style.display = 'none';
+}
+function hideError() { document.getElementById('errorBanner').style.display = 'none'; }
+function showEmpty(msg) {
+  document.getElementById('emptyState').querySelector('span').textContent = msg;
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('resultsView').style.display = 'none';
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['query','explorer','log'];
+    t.classList.toggle('active', names[i]===name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+}
+
+document.getElementById('queryEditor').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); runQuery(); }
+  if (e.key === 'Tab') { e.preventDefault(); const s = e.target.selectionStart, en = e.target.selectionEnd; e.target.value = e.target.value.substring(0, s) + '  ' + e.target.value.substring(en); e.target.selectionStart = e.target.selectionEnd = s + 2; }
+});
+</script>
+
+
+</html>
